@@ -1,4 +1,4 @@
-# VASP_Analyzer
+# VASP Analyzer
  
 ## Description
 
@@ -12,7 +12,7 @@ Clone the repository: Open your terminal/command prompt and navigate to the dire
 Then, run the following command:
 
 ```bash
-git clone https://github.com/EmilJaffal/VASP_Analyzer.git
+git clone https://github.com/EmilJaffal/VASP-Analyzer.git
 ```
 
 Install the required libraries by running:
@@ -24,7 +24,7 @@ pip install -r requirements.txt
 Navigate to the project directory by entering
 
 ```bash
-cd VASP_Analyzer
+cd VASP-Analyzer
 ```
 
 and run with a folder of either COOP, COHP, and/or DOS files
