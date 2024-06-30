@@ -17,7 +17,7 @@ def analyze_folders():
     folders = [
         folder
         for folder in os.listdir(root_dir)
-        if os.path.isdir(os.path.join(root_dir, folder))
+        if os.path.isdir(os.path.join(root_dir, folder)) and folder not in {'util', '.git'}
     ]
     folders.sort()
 
