@@ -47,7 +47,5 @@ def custom_order(filename):
         "Fe": 2,
         "Si": 3,
     }
-    # Extract the label from the filename
-    label = filename.replace("Dos-", "").split("_")[0]
     # Return the corresponding order value
     return order.get(label, 999)

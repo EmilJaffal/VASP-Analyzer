@@ -504,9 +504,8 @@ def plot_dos_contributions(directory):
         all_x_values.extend(x[valid_indices])
 
         # Plot the data on the same axis with default colors
-        label = file_name.replace(
-            "Dos-", ""
-        )  # Remove 'Dos-' prefix from label
+        label = re.sub(r'(?i)dos-', '', file_name)  # Remove 'Dos-', 'DOS-', 'dos-' prefix from label
+
 
         # Skip plotting if label contains 'Int'
         if "Int" in label:
