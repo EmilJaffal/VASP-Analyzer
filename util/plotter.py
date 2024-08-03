@@ -105,6 +105,10 @@ def plot_cohp_contributions(directory):
         axis="y", labelsize=25, direction="in", width=2.5, length=14
     )  # Set y-axis ticks inside with width=2.5
 
+    # Custom formatter to ensure proper minus sign rendering
+    formatter = ticker.FuncFormatter(lambda x, _: f"{x:,.0f}")
+    ax.yaxis.set_major_formatter(formatter)
+
     ax.set_ylabel("Energy (eV)", fontsize=28)  # Set font size for y-axis label
     ax.set_title(
         "", fontsize=35, pad=5
@@ -239,6 +243,7 @@ def plot_cohp_contributions(directory):
     fig.savefig(output_filename, bbox_inches="tight")
 
 
+
 def plot_coop_contributions(directory):
     coop_files = get_coop_files(directory)
 
@@ -299,7 +304,7 @@ def plot_coop_contributions(directory):
                 y,
                 label=file_name.replace("COOP-", ""),
                 linestyle=linestyle,
-                linewidth=3.5,
+                linewidth=2.5,
                 color=color,
             )
             handles.append(line)  # Append handle to list
@@ -321,6 +326,10 @@ def plot_coop_contributions(directory):
     ax.tick_params(
         axis="y", labelsize=25, direction="in", width=2.5, length=14
     )  # Set y-axis ticks inside with width=2.5
+
+    # Custom formatter to ensure proper minus sign rendering
+    formatter = ticker.FuncFormatter(lambda x, _: f"{x:,.0f}")
+    ax.yaxis.set_major_formatter(formatter)
 
     ax.set_ylabel("Energy (eV)", fontsize=28)  # Set font size for y-axis label
     ax.set_title(
@@ -554,8 +563,8 @@ def plot_dos_contributions(directory):
         axis="y", labelsize=25, direction="in", width=2.5, length=14, right=True  # Add ticks to the right side
     )  # Set y-axis ticks inside with width=2.5
 
-    # Custom formatter to decrease the size of the negative sign
-    formatter = ticker.FuncFormatter(lambda x, _: f"{int(x):,}".replace('-', r'$-$'))
+    # Custom formatter to ensure proper minus sign rendering
+    formatter = ticker.FuncFormatter(lambda x, _: f"{x:,.0f}")
     ax.yaxis.set_major_formatter(formatter)
 
     # Set labels and title
@@ -673,6 +682,7 @@ def plot_dos_contributions(directory):
     grandparent_dir = os.path.dirname(script_dir)
     output_filename = os.path.join(grandparent_dir, folder_name + "_DOS.png")
     fig.savefig(output_filename, bbox_inches="tight")
+
 
 
 def plot_dos_int_contributions(directory):
@@ -801,6 +811,10 @@ def plot_dos_int_contributions(directory):
         ha="left",
         color="black",
     )  # Set font size for annotation text and italicize 'E'
+
+    # Apply custom formatter to y-axis
+    formatter = ticker.FuncFormatter(lambda x, _: f"{x:,.0f}")
+    ax.yaxis.set_major_formatter(formatter)
 
     # Set font size for legend and sort labels based on custom order
     sorted_handles, sorted_labels = zip(
