@@ -243,7 +243,6 @@ def plot_cohp_contributions(directory):
     fig.savefig(output_filename, bbox_inches="tight")
 
 
-
 def plot_coop_contributions(directory):
     coop_files = get_coop_files(directory)
 
@@ -468,14 +467,6 @@ def plot_coop_contributions(directory):
 def plot_dos_contributions(directory):
     dos_files = get_dos_files(directory)
 
-    # Custom order for plotting
-    custom_order = {
-        "Total": 0,
-        "Fe": 1,
-        "Si": 2,
-        # Add more elements as needed
-    }
-
     # Close all existing figures to avoid displaying multiple figures
     plt.close("all")
 
@@ -492,6 +483,9 @@ def plot_dos_contributions(directory):
     labels = []
 
     total_plot = None  # Variable to store the "Total" plot
+
+    # Initialize a dictionary to count occurrences of each element type
+    element_occurrences = {}
 
     for filename in dos_files:
         # Read data from file
@@ -524,6 +518,20 @@ def plot_dos_contributions(directory):
         element = label
         group = classify_element(element)
 
+        # Initialize the occurrence count for the element type if not already present
+        if group not in element_occurrences:
+            element_occurrences[group] = 0
+
+        # Increment the occurrence count for this element type
+        element_occurrences[group] += 1
+
+        # Set the linestyle based on the occurrence count
+        linestyle = "-"
+        if element_occurrences[group] == 2:
+            linestyle = "--"  # Dashed line for the second occurrence
+        elif element_occurrences[group] == 3:
+            linestyle = ":"  # Dotted line for the third occurrence
+
         if label == "Total":
             color = "black"  # Total DOS in black
             total_plot = (x, y)  # Store data for "Total" plot
@@ -532,7 +540,7 @@ def plot_dos_contributions(directory):
                 group, "gray"
             )  # Default to gray if group not found
 
-            (line,) = ax.plot(x, y, label=label, color=color, linewidth=2.5)
+            (line,) = ax.plot(x, y, label=label, color=color, linestyle=linestyle, linewidth=2.5)
             plots.append(line)
             labels.append(label)
 
@@ -587,7 +595,7 @@ def plot_dos_contributions(directory):
     sorted_plots, sorted_labels = zip(
         *sorted(
             zip(plots, labels),
-            key=lambda x: custom_order.get(x[1], float("inf")),
+            key=lambda x: custom_order(x[1]),
         )
     )
 
@@ -682,7 +690,6 @@ def plot_dos_contributions(directory):
     grandparent_dir = os.path.dirname(script_dir)
     output_filename = os.path.join(grandparent_dir, folder_name + "_DOS.png")
     fig.savefig(output_filename, bbox_inches="tight")
-
 
 
 def plot_dos_int_contributions(directory):

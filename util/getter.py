@@ -27,7 +27,7 @@ def get_dos_files(directory):
     return dos_files
 
 
-def custom_order(filename):
+def custom_order(label):
     # Define the custom order of Total, {RE: "Er", "Ce", "Eu", "Ho", "Pr", "Sm", "Dy", "Gd", "La", "Nd", "Tb", "Lu"}, Fe, and Si
     order = {
         "Total": 0,
