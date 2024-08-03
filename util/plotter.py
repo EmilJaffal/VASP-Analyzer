@@ -3,6 +3,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
+from matplotlib import ticker
 import re
 from collections import defaultdict
 from util.getter import (
@@ -506,7 +507,6 @@ def plot_dos_contributions(directory):
         # Plot the data on the same axis with default colors
         label = re.sub(r'(?i)dos-', '', file_name)  # Remove 'Dos-', 'DOS-', 'dos-' prefix from label
 
-
         # Skip plotting if label contains 'Int'
         if "Int" in label:
             continue
@@ -551,8 +551,12 @@ def plot_dos_contributions(directory):
 
     # Set font size for ticks
     ax.tick_params(
-        axis="y", labelsize=25, direction="in", width=2.5, length=14
+        axis="y", labelsize=25, direction="in", width=2.5, length=14, right=True  # Add ticks to the right side
     )  # Set y-axis ticks inside with width=2.5
+
+    # Custom formatter to decrease the size of the negative sign
+    formatter = ticker.FuncFormatter(lambda x, _: f"{int(x):,}".replace('-', r'$-$'))
+    ax.yaxis.set_major_formatter(formatter)
 
     # Set labels and title
     ax.set_xlabel("DOS", fontsize=28)
