@@ -36,7 +36,7 @@ def classify_element(element):
         return "Actinides"
     elif element in ["B", "Si", "Ge", "As", "Sb", "Te", "Po", "At"]:
         return "Metalloids"
-    elif element in ["F", "Cl", "Br", "At", "In"]:
+    elif element in ["F", "Cl", "Br", "At"]:
         return "Halogens"
     elif element in ["He", "Ne", "Ar", "Kr", "Xe", "Rn"]:
         return "Noble Gases"

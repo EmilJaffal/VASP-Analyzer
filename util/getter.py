@@ -28,24 +28,20 @@ def get_dos_files(directory):
 
 
 def custom_order(label):
-    # Define the custom order of Total, {RE: "Er", "Ce", "Eu", "Ho", "Pr", "Sm", "Dy", "Gd", "La", "Nd", "Tb", "Lu"}, Fe, and Si
+    # Define the custom order of Total, Transition Metals, Alkali Metals, Alkaline Earth Metals, Lanthanides,
+    # Actinides, Metalloids, Halogens, Noble Gases, Post-transition Metals, and Other
     order = {
         "Total": 0,
-        "Int": 1,
-        "Er": 1,
-        "Ce": 1,
-        "Eu": 1,
-        "Ho": 1,
-        "Pr": 1,
-        "Sm": 1,
-        "Dy": 1,
-        "Gd": 1,
-        "La": 1,
-        "Nd": 1,
-        "Tb": 1,
-        "Lu": 1,
-        "Fe": 2,
-        "Si": 3,
+        "Transition Metals": 1,
+        "Alkali Metals": 2,
+        "Alkaline Earth Metals": 3,
+        "Lanthanides": 4,
+        "Actinides": 5,
+        "Metalloids": 6,
+        "Halogens": 7,
+        "Noble Gases": 8,
+        "Post-transition Metals": 9,
+        "Other": 10,
     }
     # Return the corresponding order value
     return order.get(label, 999)

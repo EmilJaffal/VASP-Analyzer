@@ -467,137 +467,97 @@ def plot_coop_contributions(directory):
 def plot_dos_contributions(directory):
     dos_files = get_dos_files(directory)
 
-    # Close all existing figures to avoid displaying multiple figures
     plt.close("all")
 
-    # Adjust figure size for display (smaller figsize)
-    fig, ax = plt.subplots(figsize=(5.4, 12))  # smaller figsize for display
+    fig, ax = plt.subplots(figsize=(5.4, 12))
     plt.subplots_adjust(left=0.15, right=0.85, top=0.95, bottom=0.1)
 
     all_x_values = []
     y_min = -8
     y_max = 2
 
-    # Store plots and labels for custom ordering
-    plots = []
-    labels = []
-
-    total_plot = None  # Variable to store the "Total" plot
-
-    # Initialize a dictionary to count occurrences of each element type
-    element_occurrences = {}
+    # Initialize dictionaries for tracking occurrences
+    group_elements = {}
+    elements_by_group = {}
+    total_plot = None
 
     for filename in dos_files:
-        # Read data from file
         data = np.loadtxt(filename)
-
-        # Split x and y values
         x = data[:, 0]
         y = data[:, 1]
-
-        # Get file name without extension
         file_name = os.path.splitext(os.path.basename(filename))[0]
 
-        # Subtract corresponding value from y-values
         parent_folder = os.path.basename(directory)
         if parent_folder in subtraction_values:
             y -= subtraction_values[parent_folder]
 
-        # Collect x-values within the specified y-axis range for dynamic x-axis limits
         valid_indices = (y >= y_min) & (y <= y_max)
         all_x_values.extend(x[valid_indices])
 
-        # Plot the data on the same axis with default colors
-        label = re.sub(r'(?i)dos-', '', file_name)  # Remove 'Dos-', 'DOS-', 'dos-' prefix from label
+        label = re.sub(r'(?i)dos-', '', file_name)  # Remove prefix from label
 
-        # Skip plotting if label contains 'Int'
         if "Int" in label:
             continue
 
-        # Determine element and assign color based on group
         element = label
         group = classify_element(element)
 
-        # Initialize the occurrence count for the element type if not already present
-        if group not in element_occurrences:
-            element_occurrences[group] = 0
+        # Track elements within their groups
+        if group not in group_elements:
+            group_elements[group] = []
+        group_elements[group].append(element)
 
-        # Increment the occurrence count for this element type
-        element_occurrences[group] += 1
+        if group not in elements_by_group:
+            elements_by_group[group] = []
+        color = element_colors.get(group, "gray")
 
-        # Set the linestyle based on the occurrence count
-        linestyle = "-"
-        if element_occurrences[group] == 2:
-            linestyle = "--"  # Dashed line for the second occurrence
-        elif element_occurrences[group] == 3:
-            linestyle = ":"  # Dotted line for the third occurrence
+        linestyle = "-"  # Default linestyle
+        if element == "Total":
+            color = "black"  # Ensure Total is black
+            linestyle = "-"  # Solid line for Total
 
-        if label == "Total":
-            color = "black"  # Total DOS in black
-            total_plot = (x, y)  # Store data for "Total" plot
-        else:
-            color = element_colors.get(
-                group, "gray"
-            )  # Default to gray if group not found
+        elements_by_group[group].append((element, x, y, color, linestyle))
 
-            (line,) = ax.plot(x, y, label=label, color=color, linestyle=linestyle, linewidth=2.5)
-            plots.append(line)
-            labels.append(label)
+    # Apply linestyle based on alphabetical order within each group
+    for group, elements in group_elements.items():
+        sorted_elements = sorted(elements)  # Sort alphabetically
+        linestyle_mapping = {elem: "-" for elem in sorted_elements}
+        if len(sorted_elements) > 1:
+            linestyle_mapping[sorted_elements[1]] = "--"  # Dashed line for second occurrence
+        if len(sorted_elements) > 2:
+            linestyle_mapping[sorted_elements[2]] = ":"  # Dotted line for third occurrence
 
-    # Plot the "Total" DOS after all other lines
+        # Update the linestyle for each element in the group
+        for i, (element, x, y, color, _) in enumerate(elements_by_group[group]):
+            elements_by_group[group][i] = (element, x, y, color, linestyle_mapping[element])
+
+    # Plot Total first
+    for group in elements_by_group:
+        for element, x, y, color, linestyle in elements_by_group[group]:
+            if element == "Total":
+                total_plot = (x, y, element, color)
+                break
+        if total_plot:
+            break
+
+    sorted_elements = []
+
+    # Plot Total line first
     if total_plot:
-        x, y = total_plot
-        (total_line,) = ax.plot(
-            x, y, label="Total", color="black", linewidth=2.5
-        )
-        plots.insert(
-            0, total_line
-        )  # Ensure "Total" is first in the list for legend ordering
-        labels.insert(0, "Total")
+        x, y, label, color = total_plot
+        (total_line,) = ax.plot(x, y, label=label, color=color, linestyle='-', linewidth=2.5)
+        sorted_elements.append((total_line, label))
 
-    # Determine the maximum absolute x-value within the y-limits
-    max_x_value_within_y_frame = (
-        max(all_x_values, key=abs) if all_x_values else 0
-    )
+    # Sort by group order and then alphabetically within each group
+    for group in sorted(elements_by_group, key=lambda g: custom_order(g)):
+        elements = sorted(elements_by_group[group], key=lambda x: x[0])  # Sort alphabetically
+        for element, x, y, color, linestyle in elements:
+            if element != "Total":
+                (line,) = ax.plot(x, y, label=element, color=color, linestyle=linestyle, linewidth=2.5)
+                sorted_elements.append((line, element))
 
-    # Plot a line at y=0
-    ax.axhline(0, color="black", linestyle="--", linewidth=2.5)
-
-    # Remove x-axis ticks and labels for both axes
-    ax.xaxis.set_visible(False)
-
-    # Set font size for ticks
-    ax.tick_params(
-        axis="y", labelsize=25, direction="in", width=2.5, length=14, right=True  # Add ticks to the right side
-    )  # Set y-axis ticks inside with width=2.5
-
-    # Custom formatter to ensure proper minus sign rendering
-    formatter = ticker.FuncFormatter(lambda x, _: f"{x:,.0f}")
-    ax.yaxis.set_major_formatter(formatter)
-
-    # Set labels and title
-    ax.set_xlabel("DOS", fontsize=28)
-    ax.set_ylabel("Energy (eV)", fontsize=28)
-    folder_name = os.path.basename(directory)
-    folder_name_subscripted = re.sub(
-        r"(\d+)", lambda x: r"$_\mathrm{" + x.group(0) + r"}$", folder_name
-    )
-    ax.set_title(folder_name_subscripted + " DOS", fontsize=30, pad=5, y=1.02)
-
-    # Set x-axis limits based on max value within y-frame
-    ax.set_xlim(0, max_x_value_within_y_frame * 1.2)
-    ax.set_ylim(y_min, y_max)  # Set the y-axis limits
-    ax.yaxis.set_major_locator(
-        MaxNLocator(integer=True)
-    )  # Show only whole numbers on y-axis
-
-    # Sort labels and handles based on custom order
-    sorted_plots, sorted_labels = zip(
-        *sorted(
-            zip(plots, labels),
-            key=lambda x: custom_order(x[1]),
-        )
-    )
+    # Separate sorted lines and labels
+    sorted_plots, sorted_labels = zip(*sorted_elements)
 
     # Add legend to the plot based on sorted order
     legend = ax.legend(
@@ -606,14 +566,33 @@ def plot_dos_contributions(directory):
         frameon=False,
         fontsize=23,
         handlelength=1.0,
-    )  # Remove legend frame
+    )
     for line in legend.get_lines():
         line.set_linewidth(2.5)
 
-    # Add E_F annotation outside the plot to the right
-    annotation_x = (
-        max_x_value_within_y_frame * 1.2
-    )  # Adjust x position dynamically
+    # Continue with the rest of the plotting setup
+    max_x_value_within_y_frame = max(all_x_values, key=abs) if all_x_values else 0
+    ax.axhline(0, color="black", linestyle="--", linewidth=2.5)
+    ax.xaxis.set_visible(False)
+    ax.tick_params(
+        axis="y", labelsize=25, direction="in", width=2.5, length=14, right=True
+    )
+    formatter = ticker.FuncFormatter(lambda x, _: f"{x:,.0f}")
+    ax.yaxis.set_major_formatter(formatter)
+
+    ax.set_xlabel("DOS", fontsize=28)
+    ax.set_ylabel("Energy (eV)", fontsize=28)
+    folder_name = os.path.basename(directory)
+    folder_name_subscripted = re.sub(
+        r"(\d+)", lambda x: r"$_\mathrm{" + x.group(0) + r"}$", folder_name
+    )
+    ax.set_title(folder_name_subscripted + " DOS", fontsize=30, pad=5, y=1.02)
+
+    ax.set_xlim(0, max_x_value_within_y_frame * 1.2)
+    ax.set_ylim(y_min, y_max)
+    ax.yaxis.set_major_locator(MaxNLocator(integer=True))
+
+    annotation_x = max_x_value_within_y_frame * 1.2
     ax.annotate(
         r"$E_{\mathrm{F}}$",
         xy=(annotation_x, 0),
@@ -626,10 +605,7 @@ def plot_dos_contributions(directory):
         color="black",
     )
 
-    # Adjust the layout manually
     plt.subplots_adjust(left=0.15, right=0.85, top=0.95, bottom=0.1)
-
-    # Set axes lines width to 2.5
     ax.spines["top"].set_linewidth(2.5)
     ax.spines["bottom"].set_linewidth(2.5)
     ax.spines["left"].set_linewidth(2.5)
@@ -637,10 +613,8 @@ def plot_dos_contributions(directory):
 
     click.echo("Please close the plot window to proceed")
 
-    # Display the plot
     plt.show()
 
-    # Prompt user for feedback on y-axis limits
     while True:
         feedback = click.prompt(
             "Are the displayed y-axes appropriate? (y/n)", type=str
@@ -661,7 +635,6 @@ def plot_dos_contributions(directory):
         else:
             click.echo("Invalid input. Please enter 'y' or 'n'.")
 
-    # Prompt for adding an adjusted Fermi level line
     add_adj_fermi_level = click.prompt(
         "Would you like to add a horizontal line signifying the adjusted Fermi level? (y/n)",
         type=str,
@@ -685,11 +658,12 @@ def plot_dos_contributions(directory):
             color="black",
         )
 
-    # Save the plot as PNG in the grandparent folder of the current script
     script_dir = os.path.dirname(os.path.abspath(__file__))
     grandparent_dir = os.path.dirname(script_dir)
     output_filename = os.path.join(grandparent_dir, folder_name + "_DOS.png")
     fig.savefig(output_filename, bbox_inches="tight")
+
+
 
 
 def plot_dos_int_contributions(directory):
