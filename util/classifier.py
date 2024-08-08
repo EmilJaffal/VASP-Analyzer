@@ -11,6 +11,8 @@ element_colors = {
     "Post-transition Metals": "olive",
 }
 
+# Define additional colors for multiple occurrences
+additional_colors = ["cyan", "magenta", "yellow", "navy", "maroon", "lime"]
 
 # Define a function to classify elements into groups
 def classify_element(element):

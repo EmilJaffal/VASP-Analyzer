@@ -12,7 +12,7 @@ from util.getter import (
     get_dos_files,
     custom_order,
 )
-from util.classifier import classify_element, element_colors
+from util.classifier import classify_element, element_colors, additional_colors
 
 # Global variable to store subtraction values
 subtraction_values = {}
@@ -518,18 +518,19 @@ def plot_dos_contributions(directory):
 
         elements_by_group[group].append((element, x, y, color, linestyle))
 
-    # Apply linestyle based on alphabetical order within each group
+    # Apply color based on occurrence within each group
     for group, elements in group_elements.items():
         sorted_elements = sorted(elements)  # Sort alphabetically
-        linestyle_mapping = {elem: "-" for elem in sorted_elements}
+        color_mapping = {elem: element_colors.get(group, "gray") for elem in sorted_elements}
+        
         if len(sorted_elements) > 1:
-            linestyle_mapping[sorted_elements[1]] = "--"  # Dashed line for second occurrence
+            color_mapping[sorted_elements[1]] = additional_colors[0]  # Use additional color for second occurrence
         if len(sorted_elements) > 2:
-            linestyle_mapping[sorted_elements[2]] = ":"  # Dotted line for third occurrence
+            color_mapping[sorted_elements[2]] = additional_colors[1]  # Use another additional color for third occurrence
 
-        # Update the linestyle for each element in the group
-        for i, (element, x, y, color, _) in enumerate(elements_by_group[group]):
-            elements_by_group[group][i] = (element, x, y, color, linestyle_mapping[element])
+        # Update the color for each element in the group
+        for i, (element, x, y, _, linestyle) in enumerate(elements_by_group[group]):
+            elements_by_group[group][i] = (element, x, y, color_mapping[element], linestyle)
 
     # Plot Total first
     for group in elements_by_group:
@@ -545,7 +546,7 @@ def plot_dos_contributions(directory):
     # Plot Total line first
     if total_plot:
         x, y, label, color = total_plot
-        (total_line,) = ax.plot(x, y, label=label, color=color, linestyle='-', linewidth=2.5)
+        (total_line,) = ax.plot(x, y, label=label, color="black", linestyle='-', linewidth=2.5)
         sorted_elements.append((total_line, label))
 
     # Sort by group order and then alphabetically within each group
@@ -662,8 +663,6 @@ def plot_dos_contributions(directory):
     grandparent_dir = os.path.dirname(script_dir)
     output_filename = os.path.join(grandparent_dir, folder_name + "_DOS.png")
     fig.savefig(output_filename, bbox_inches="tight")
-
-
 
 
 def plot_dos_int_contributions(directory):
