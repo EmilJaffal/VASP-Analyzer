@@ -26,6 +26,13 @@ def get_dos_files(directory):
         click.echo("DOS files not found.")
     return dos_files
 
+def get_doe_files(directory):
+    # Use glob to find all files starting with "DOS-", "dos-", or "Dos-" in the specified directory
+    doe_files = glob.glob(os.path.join(directory, "[Dd][Oo][Ee]-*"))
+    if not doe_files:
+        click.echo("DOE file not found.")
+    return doe_files
+
 
 def custom_order(label):
     # Define the custom order of Total, Transition Metals, Alkali Metals, Alkaline Earth Metals, Lanthanides,

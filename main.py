@@ -5,9 +5,10 @@ from util.plotter import (
     plot_coop_contributions,
     plot_dos_contributions,
     plot_dos_int_contributions,
-    subtraction_values,
+    plot_doe_int_contributions,
+    subtraction_values
 )
-from util.getter import get_cohp_files, get_coop_files, get_dos_files
+from util.getter import get_cohp_files, get_coop_files, get_dos_files, get_doe_files
 
 
 @click.command()
@@ -31,11 +32,14 @@ def analyze_folders():
     )
     chosen_folder = folders[choice - 1]
 
-    # Step 2: Prompt 'What files you like to analyze?'
-    click.echo("What files you like to analyze?")
+    # Step 2: Prompt 'What files would you like to analyze?'
+    click.echo("What files would you like to analyze?")
     click.echo("1. COOP/COHP files")
     click.echo("2. DOS files (elemental contributions)")
     click.echo("3. DOS files (total and integrated)")
+    click.echo("4. Just COHP files")
+    click.echo("5. DOE files (total and integrated)")
+
 
     file_choice = click.prompt(
         "Enter the number corresponding to the type of files you want to analyze",
@@ -45,15 +49,12 @@ def analyze_folders():
     directory = os.path.join(root_dir, chosen_folder)
 
     if file_choice == 1:
-        # Check for COHP files
+        # Check for COHP and COOP files
         cohp_files = get_cohp_files(directory)
-        if not cohp_files:
-            return  # Early return if no COHP files found
-
-        # Check for COOP files
         coop_files = get_coop_files(directory)
-        if not coop_files:
-            return  # Early return if no COOP files found
+        if not cohp_files or not coop_files:
+            click.echo("COHP/COOP files not found.")
+            return  # Early return if no COHP/COOP files found
 
         # Prompt for Fermi level and calculate subtraction value
         fermi_level = click.prompt(
@@ -62,16 +63,15 @@ def analyze_folders():
         )
         subtraction_values[chosen_folder] = fermi_level
 
-        # Generate COHP plot for the chosen folder
+        # Generate COHP and COOP plots for the chosen folder
         plot_cohp_contributions(directory)
-
-        # Generate COOP plot for the chosen folder
         plot_coop_contributions(directory)
 
     elif file_choice == 2:
         # Check for DOS files
         dos_files = get_dos_files(directory)
         if not dos_files:
+            click.echo("DOS files not found.")
             return  # Early return if no DOS files found
 
         # Prompt for Fermi level and calculate subtraction value
@@ -88,6 +88,7 @@ def analyze_folders():
         # Check for DOS files
         dos_files = get_dos_files(directory)
         if not dos_files:
+            click.echo("DOS files not found.")
             return  # Early return if no DOS files found
 
         # Prompt for Fermi level and calculate subtraction value
@@ -97,8 +98,43 @@ def analyze_folders():
         )
         subtraction_values[chosen_folder] = fermi_level
 
-        # Generate DOS plot for the chosen folder
+        # Generate integrated DOS plot for the chosen folder
         plot_dos_int_contributions(directory)
+
+    elif file_choice == 4:
+        # Check for COHP files
+        cohp_files = get_cohp_files(directory)
+        if not cohp_files:
+            click.echo("COHP files not found.")
+            return  # Early return if no COHP files found
+
+        # Prompt for Fermi level and calculate subtraction value
+        fermi_level = click.prompt(
+            "What is the Fermi level? (See line 6, third value of DOSCAR file)",
+            type=float,
+        )
+        subtraction_values[chosen_folder] = fermi_level
+
+        # Generate COHP plot for the chosen folder
+        plot_cohp_contributions(directory)
+
+    elif file_choice == 5:
+        # Check for DOS files
+        doe_files = get_doe_files(directory)
+        if not doe_files:
+            click.echo("DOE file not found.")
+            return  # Early return if no DOS files found
+
+        # Prompt for Fermi level and calculate subtraction value
+        fermi_level = click.prompt(
+            "What is the Fermi level? (See line 6, third value of DOSCAR file)",
+            type=float,
+        )
+        subtraction_values[chosen_folder] = fermi_level
+
+        # Generate integrated DOS plot for the chosen folder
+        plot_doe_int_contributions(directory)
+
     else:
         click.echo("Invalid choice. Exiting.")
 
